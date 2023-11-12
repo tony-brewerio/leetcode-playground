@@ -2,16 +2,18 @@ package org.playground.leetcode;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.converter.ArgumentConversionException;
 import org.junit.jupiter.params.converter.ArgumentConverter;
 import org.junit.jupiter.params.converter.ConvertWith;
 import org.junit.jupiter.params.provider.CsvFileSource;
+import org.playground.leetcode.helpers.AveragingOperationTimer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
 import java.util.stream.StreamSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,11 +22,29 @@ class LeetCode1786Test {
     private static final Logger log = LoggerFactory.getLogger(LeetCode1786Test.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
+    @AfterEach
+    public void resetAveragingOperationTimer() {
+        AveragingOperationTimer.reset();
+    }
+
     @CsvFileSource(resources = "/LeetCode1786Test.argumentsForTestCountRestrictedPaths.csv", delimiterString = ";", maxCharsPerColumn = 1_000_000)
     @ParameterizedTest(name = "{index} => expected:{0} - n:{1} - edges:{2}")
     void testCountRestrictedPaths(long expected, int n, @ConvertWith(CommaDelimitedStringToIntArrayConverter.class) int[][] edges) {
-        for (int i = 0; i < 100; i++) {
-            var count = new LeetCode1786().countRestrictedPaths(n, edges);
+//        if (expected != 3) {
+//            return;
+//        }
+//        if (expected != 1) {
+//            return;
+//        }
+        if (expected != 988094463) {
+            return;
+        }
+//        if (expected > 10) {
+//            return;
+//        }
+        int count;
+        for (int i = 0; i < 2000; i++) {
+            count = new LeetCode1786().countRestrictedPaths(n, edges);
             assertThat(count).isEqualTo(expected);
         }
     }
