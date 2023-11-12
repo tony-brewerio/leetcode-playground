@@ -1,5 +1,9 @@
 package org.playground.leetcode;
 
+import org.playground.leetcode.helpers.AveragingOperationTimer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.*;
 
 /**
@@ -7,7 +11,7 @@ import java.util.*;
  * <p>
  * Problem notes.
  * There are at most 500 buses overall. We can easily use BitSet or shorts perhaps?
- * As usual, Leetcode provies 1 base numbers, but I prefer 0 based instead.
+ * As usual, Leetcode provies 1 base numbers, which sometimes kind of sucks.
  * <p>
  * Constraints:
  * 1 <= routes.length <= 500.
@@ -19,99 +23,111 @@ import java.util.*;
  * <p>
  * Notes.
  * Doing -1 all the time is very awkward. Unless I use flat array arithmetic for something, it is kind of pointless.
+ * Bus stops are treated as starting from zero, as they are based off of routes index.
+ * Stops are 1 based, since I just treated them as is.
  */
 public class LeetCode815 {
+    private static final Logger log = LoggerFactory.getLogger(LeetCode815.class);
+    private AveragingOperationTimer timer;
 
     public int numBusesToDestination(int[][] routes, int source, int target) {
         if (source == target) {
             return 0;
         }
-        // Setup.
-        // Graph begins with same-bus edges, those cost 1, since we don't need to "hop" buses to get to them.
-        // We still absolutely do need to assign them some cost to prevent algorithm from looping over.
-        // Another way to avoid loops is to maintain a history of visited nodes but that is way more expensive.
-        // Note that edge here is a bit special - it is unique by node and not by node + value
-        // There is no point, after all, to hop a bus to get to a point that you can get to by riding the current line.
-        Map<Stop, Set<Stop>> graph = new HashMap<>();
-        Map<Integer, List<Integer>> busesPerStop = new HashMap<>();
-        int busHopEdgeCost = 1;
+        // By definition, there are less than 10^6 individual bus stops and at most 500 routes.
+        // Thus, we can represent each unique stop at each route by a single number under 50_000_000.
+        // Basically, stop id will be bus_n * 500 + stop_n.
+        // We can make an array of ints of this size, but it will cost like 400 MB, which is probably too much.
+        // Still, regular int should be a tad bit faster overall than POJO.
+        log.info("=== LeetCode 815 ===");
+        timer = new AveragingOperationTimer(log, "setup - {} ms");
         int maxStopNumber = -1;
-        for (int bus = 0; bus < routes.length; bus++) {
-            for (int stop : routes[bus]) {
+        for (int[] route : routes) {
+            for (int stop : route) {
                 if (stop > maxStopNumber) {
                     maxStopNumber = stop;
                 }
-                var edges = graph.computeIfAbsent(new Stop(bus, stop - 1), x -> new HashSet<>());
-                busesPerStop.computeIfAbsent(stop - 1, x -> new ArrayList<>()).add(bus);
-                for (int next : routes[bus]) {
-                    if (next != stop && edges.add(new Stop(bus, next - 1))) {
-                        busHopEdgeCost++;
-                    }
-                }
             }
         }
-        // To make sure we can actually calculate the amount of bus hops,
-        // we must make sure that switching the bus costs more than riding any amount of bus stops on a bus.
-        // If that condition is kept, we just divide the final cost, drop the remainder - and that's out hop count.
-        // Now we add bus hopping edges to the graph, cost is variable depending on how many non-hop edges we have.
-        for (var entry : busesPerStop.entrySet()) {
-            for (int bus1 : entry.getValue()) {
-                for (int bus2 : entry.getValue()) {
-                    if (bus1 != bus2) {
-                        graph.get(new Stop(bus1, entry.getKey())).add(new Stop(bus2, entry.getKey()));
-                        graph.get(new Stop(bus2, entry.getKey())).add(new Stop(bus1, entry.getKey()));
-                    }
+        BitSet[] transfers = new BitSet[maxStopNumber + 1];
+        for (int bus = 0; bus < routes.length; bus++) {
+            int[] route = routes[bus];
+            for (int stop : route) {
+                var tr = transfers[stop];
+                if (tr == null) {
+                    tr = transfers[stop] = new BitSet(routes.length);
                 }
+                tr.set(bus);
             }
         }
-        var result = minHopsToDestination(graph, busesPerStop, maxStopNumber, busHopEdgeCost, source, target);
+        timer.close();
+        timer = new AveragingOperationTimer(log, "distances - {} ms");
+        var result = minHopsToDestination2(routes, transfers, ((long) maxStopNumber) * routes.length, source, target);
+        timer.close();
         return result;
     }
 
-    private int minHopsToDestination(Map<Stop, Set<Stop>> graph,
-                                     Map<Integer, List<Integer>> busesPerStop,
-                                     int maxStopNumber,
-                                     int busHopEdgeCost,
-                                     int source,
-                                     int target) {
+    private int minHopsToDestination2(int[][] routes,
+                                      BitSet[] transfers,
+                                      long busHopEdgeCost,
+                                      int source,
+                                      int target) {
         // we start our stack with one hop on every bus on the source stop
-        var paths = new PriorityQueue<CalcDistancePath>();
-        Map<Stop, Integer> distances = new HashMap<>();
-        for (Integer bus : busesPerStop.get(source - 1)) {
-            var stop = new Stop(bus, source - 1);
-            paths.add(new CalcDistancePath(stop, busHopEdgeCost));
+        Map<Stop, Long> distances = new HashMap<>();
+        var stack = new PriorityQueue<CalcDistancePath>();
+        transfers[source].stream().forEach(bus -> {
+            var stop = new Stop(bus, source);
+            stack.add(new CalcDistancePath(stop, busHopEdgeCost));
             distances.put(stop, busHopEdgeCost);
-        }
-        int bestEndStopDistance = Integer.MAX_VALUE;
-        while (!paths.isEmpty()) {
-            var prev = paths.poll();
+        });
+        long bestEndStopDistance = Long.MAX_VALUE;
+        while (!stack.isEmpty()) {
+            var prev = stack.poll();
             var prevStop = prev.stop();
+            var prevStopStop = prev.stop().stop();
             var prevStopBus = prev.stop().bus();
             var prevCost = prev.cost();
-            if (prevCost > distances.getOrDefault(prevStop, Integer.MAX_VALUE)) {
+            var prevStopBestDistanceSoFar = distances.getOrDefault(prevStop, Long.MAX_VALUE);
+            if (prevCost > bestEndStopDistance || prevCost > prevStopBestDistanceSoFar) {
                 continue;
             }
-            for (var nextStop : graph.get(prevStop)) {
-                var nextStopBus = nextStop.bus();
-                var nextStopStop = nextStop.stop();
-                int nextStopCost = nextStopBus == prevStopBus ? 1 : busHopEdgeCost;
-                var nextStopDistance = prevCost + nextStopCost;
-                if (distances.getOrDefault(nextStop, Integer.MAX_VALUE) > nextStopDistance) {
-                    distances.put(nextStop, nextStopDistance);
-                    paths.add(new CalcDistancePath(nextStop, nextStopDistance));
-                    if (nextStopStop == (target - 1) && nextStopDistance < bestEndStopDistance) {
-                        bestEndStopDistance = nextStopDistance;
+            // start with following the same bus route that we are on, with cost = 1
+            for (int nextStopStop : routes[prevStopBus]) {
+                if (nextStopStop != prevStopStop) {
+                    var nextStop = new Stop(prevStopBus, nextStopStop);
+                    var nextStopCost = prevCost + 1;
+                    if (distances.getOrDefault(nextStop, Long.MAX_VALUE) > nextStopCost) {
+                        distances.put(nextStop, nextStopCost);
+                        stack.add(new CalcDistancePath(nextStop, nextStopCost));
+                        if (nextStopStop == target && nextStopCost < bestEndStopDistance) {
+                            bestEndStopDistance = nextStopCost;
+                        }
+                    }
+                }
+            }
+            // then follow all bus hops from the current stop, with cost = busHopEdgeCost
+            var tr = transfers[prevStopStop];
+            for (int nextStopBus = tr.nextSetBit(0); nextStopBus != -1; nextStopBus = tr.nextSetBit(nextStopBus + 1)) {
+                if (nextStopBus != prevStopBus) {
+                    var nextStop = new Stop(nextStopBus, prevStopStop);
+                    var nextStopCost = prevCost + busHopEdgeCost;
+                    if (distances.getOrDefault(nextStop, Long.MAX_VALUE) > nextStopCost) {
+                        distances.put(nextStop, nextStopCost);
+                        stack.add(new CalcDistancePath(nextStop, nextStopCost));
+                        if (prevStopBus == target && nextStopCost < bestEndStopDistance) {
+                            bestEndStopDistance = nextStopCost;
+                        }
                     }
                 }
             }
         }
-        return bestEndStopDistance != Integer.MAX_VALUE ? bestEndStopDistance / busHopEdgeCost : -1;
+        return (int) (bestEndStopDistance != Long.MAX_VALUE ? bestEndStopDistance / busHopEdgeCost : -1);
     }
 
-    public record CalcDistancePath(Stop stop, int cost) implements Comparable<CalcDistancePath> {
+    public record CalcDistancePath(Stop stop, long cost) implements Comparable<CalcDistancePath> {
         @Override
         public int compareTo(CalcDistancePath o) {
-            return cost - o.cost();
+            return Long.compare(cost, o.cost);
         }
     }
 
