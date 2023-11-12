@@ -11,54 +11,54 @@ import java.util.*;
  */
 public class LeetCode1786 {
     private static final Logger log = LoggerFactory.getLogger(LeetCode1786.class);
+    private AveragingOperationTimer timer;
     private static final long MODULO = (long) (Math.pow(10, 9) + 7);
 
-    private void addEdgeKeepingOrder(List<Edge> edges, Edge edge) {
-        for (int i = 0; i < edges.size(); i++) {
-            if (edge.cost() < edges.get(i).cost()) {
-                edges.add(i, edge);
-                return;
-            }
-        }
-        edges.add(edge);
-    }
-
     public int countRestrictedPaths(int n, int[][] edgesArray) {
+        timer = new AveragingOperationTimer(log, "setup - {} micros");
         List<List<Edge>> graph = new ArrayList<>(n);
         for (int i = 0; i < n; i++) {
             graph.add(new ArrayList<>(4));
         }
         for (int[] edge : edgesArray) {
-            addEdgeKeepingOrder(graph.get(edge[0] - 1), new Edge(edge[1] - 1, edge[2]));
-            addEdgeKeepingOrder(graph.get(edge[1] - 1), new Edge(edge[0] - 1, edge[2]));
+            graph.get(edge[0] - 1).add(new Edge(edge[1] - 1, edge[2]));
+            graph.get(edge[1] - 1).add(new Edge(edge[0] - 1, edge[2]));
         }
+        timer.close();
         //
-        var distances = new int[n];
-        Arrays.fill(distances, Integer.MAX_VALUE);
-        calculateDistances(graph, distances);
-        var timer = new AveragingOperationTimer(log, "calculate count - {} micros");
+        timer = new AveragingOperationTimer(log, "distances - {} micros");
+        var distances = calculateDistances(graph);
+        timer.close();
+        timer = new AveragingOperationTimer(log, "counts - {} micros");
         var count = countRestrictedPathsDpRec(graph, distances);
         timer.close();
         return count;
     }
 
-    public BitSet calculateDistances(List<List<Edge>> graph, int[] distances) {
+    public int[] calculateDistances(List<List<Edge>> graph) {
         var paths = new PriorityQueue<CalcDistancePath>();
         paths.add(new CalcDistancePath(graph.size() - 1, 0));
+        var distances = new int[graph.size()];
+        Arrays.fill(distances, Integer.MAX_VALUE);
         distances[graph.size() - 1] = 0;
         while (!paths.isEmpty()) {
             var path = paths.poll();
-            for (var edge : graph.get(path.node())) {
+            var pathNode = path.node();
+            var pathCost = path.cost();
+            if (distances[pathNode] != pathCost) {
+                continue;
+            }
+            for (var edge : graph.get(pathNode)) {
                 int edgeNext = edge.next();
                 int edgeCost = edge.cost();
-                var distance = distances[path.node()] + edgeCost;
-                if (distances[edgeNext] > distance) {
-                    distances[edgeNext] = distance;
-                    paths.add(new CalcDistancePath(edgeNext, edgeCost));
+                var edgeDistance = distances[pathNode] + edgeCost;
+                if (distances[edgeNext] > edgeDistance) {
+                    distances[edgeNext] = edgeDistance;
+                    paths.add(new CalcDistancePath(edgeNext, edgeCost + pathCost));
                 }
             }
         }
-        return null;
+        return distances;
     }
 
     private int countRestrictedPathsDpRec(List<List<Edge>> graph, int[] distances) {
@@ -69,64 +69,21 @@ public class LeetCode1786 {
     }
 
     private long countRestrictedPathsDpRec(List<List<Edge>> graph, int[] distances, long[] counts, int node) {
-        if (counts[node] != -1) {
-            return counts[node];
+        long count = counts[node];
+        if (count != -1) {
+            return count;
         }
-        long count = 0;
+        count = 0;
         for (Edge edge : graph.get(node)) {
-            if (distances[edge.next()] < distances[node]) {
-                count += countRestrictedPathsDpRec(graph, distances, counts, edge.next());
-                if (count >= MODULO) {
-                    count = count % MODULO;
-                }
+            int edgeNext = edge.next();
+            if (distances[node] > distances[edgeNext]) {
+                count += countRestrictedPathsDpRec(graph, distances, counts, edgeNext);
+                count = count % MODULO;
             }
         }
         counts[node] = count;
         return count;
     }
-
-//    private boolean addNextCountTask(List<List<Edge>> graph, int[] distances, ArrayDeque<CounterTask> stack, int node, int ei, long count) {
-//        var edges = graph.get(node);
-//        for (int i = ei; i < edges.size(); i++) {
-//            var edge = edges.get(i);
-//            var edgeNext = edge.next();
-//            if (distances[edgeNext] < distances[node]) {
-//                stack.addFirst(new CounterTask(node, edgeNext, i, count));
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
-
-//    private int countRestrictedPathsDpUnrolled(List<List<Edge>> graph, int[] distances) {
-//        var counts = new long[graph.size()];
-//        Arrays.fill(counts, -1);
-//        counts[graph.size() - 1] = 1;
-//        var stack = new ArrayDeque<CounterTask>();
-//        if (!addNextCountTask(graph, distances, stack, 0, 0, 0)) {
-//            throw new RuntimeException("failed to add initial dp task");
-//        }
-//        while (!stack.isEmpty()) {
-//            var task = stack.poll();
-//            long count = counts[task.right()];
-//            if (count != -1) {
-//                long nextCount = task.count() + count;
-//                if (nextCount >= MODULO) {
-//                    nextCount = nextCount % MODULO;
-//                }
-//                if (!addNextCountTask(graph, distances, stack, task.left(), task.ei() + 1, nextCount)) {
-//                    counts[task.left()] = nextCount;
-//                }
-//            } else {
-//                stack.addFirst(task);
-//                addNextCountTask(graph, distances, stack, task.right(), 0, 0);
-//            }
-//        }
-//        return (int) counts[0];
-//    }
-//
-//    public record CounterTask(int left, int right, int ei, long count) {
-//    }
 
     public record Edge(int next, int cost) {
     }
