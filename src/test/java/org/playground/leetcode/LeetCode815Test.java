@@ -34,7 +34,7 @@ class LeetCode815Test {
         if (expected != 300) {
             return;
         }
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 100; i++) {
             var result = new LeetCode815().numBusesToDestination(routes, source, target);
             assertThat(result).isEqualTo(expected);
         }

@@ -61,43 +61,47 @@ public class LeetCode815 {
             }
         }
         timer.close();
+        timer = new AveragingOperationTimer(log, "array - {} ms");
+        long[][] distances = new long[routes.length][maxStopNumber + 1];
+        timer.close();
         timer = new AveragingOperationTimer(log, "distances - {} ms");
-        var result = minHopsToDestination2(routes, transfers, ((long) maxStopNumber) * routes.length, source, target);
+        var result = minHopsToDestination2(routes, transfers, distances, ((long) maxStopNumber) * routes.length, source, target);
         timer.close();
         return result;
     }
 
     private int minHopsToDestination2(int[][] routes,
                                       BitSet[] transfers,
+                                      long[][] distances,
                                       long busHopEdgeCost,
                                       int source,
                                       int target) {
         // we start our stack with one hop on every bus on the source stop
-        Map<Stop, Long> distances = new HashMap<>();
         var stack = new PriorityQueue<CalcDistancePath>();
         transfers[source].stream().forEach(bus -> {
             var stop = new Stop(bus, source);
             stack.add(new CalcDistancePath(stop, busHopEdgeCost));
-            distances.put(stop, busHopEdgeCost);
+            distances[stop.bus()][stop.stop()] = busHopEdgeCost;
         });
         long bestEndStopDistance = Long.MAX_VALUE;
         while (!stack.isEmpty()) {
             var prev = stack.poll();
-            var prevStop = prev.stop();
             var prevStopStop = prev.stop().stop();
             var prevStopBus = prev.stop().bus();
             var prevCost = prev.cost();
-            var prevStopBestDistanceSoFar = distances.getOrDefault(prevStop, Long.MAX_VALUE);
-            if (prevCost > bestEndStopDistance || prevCost > prevStopBestDistanceSoFar) {
+            var currPrevStopDistance = distances[prevStopBus][prevStopStop];
+            if (currPrevStopDistance != 0 && (prevCost > bestEndStopDistance || prevCost > currPrevStopDistance)) {
                 continue;
             }
             // start with following the same bus route that we are on, with cost = 1
             for (int nextStopStop : routes[prevStopBus]) {
                 if (nextStopStop != prevStopStop) {
                     var nextStop = new Stop(prevStopBus, nextStopStop);
+                    var nextStopBus = nextStop.bus();
                     var nextStopCost = prevCost + 1;
-                    if (distances.getOrDefault(nextStop, Long.MAX_VALUE) > nextStopCost) {
-                        distances.put(nextStop, nextStopCost);
+                    var currNextStopDistance = distances[nextStopBus][nextStopStop];
+                    if (currNextStopDistance == 0 || currNextStopDistance > nextStopCost) {
+                        distances[nextStopBus][nextStopStop] = nextStopCost;
                         stack.add(new CalcDistancePath(nextStop, nextStopCost));
                         if (nextStopStop == target && nextStopCost < bestEndStopDistance) {
                             bestEndStopDistance = nextStopCost;
@@ -110,9 +114,11 @@ public class LeetCode815 {
             for (int nextStopBus = tr.nextSetBit(0); nextStopBus != -1; nextStopBus = tr.nextSetBit(nextStopBus + 1)) {
                 if (nextStopBus != prevStopBus) {
                     var nextStop = new Stop(nextStopBus, prevStopStop);
+                    var nextStopStop = nextStop.stop();
                     var nextStopCost = prevCost + busHopEdgeCost;
-                    if (distances.getOrDefault(nextStop, Long.MAX_VALUE) > nextStopCost) {
-                        distances.put(nextStop, nextStopCost);
+                    var nextStopDistance = distances[nextStopBus][nextStopStop];
+                    if (nextStopDistance == 0 || nextStopDistance > nextStopCost) {
+                        distances[nextStopBus][nextStopStop] = nextStopCost;
                         stack.add(new CalcDistancePath(nextStop, nextStopCost));
                         if (prevStopBus == target && nextStopCost < bestEndStopDistance) {
                             bestEndStopDistance = nextStopCost;
