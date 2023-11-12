@@ -3,7 +3,6 @@ package org.playground.leetcode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.converter.ArgumentConversionException;
@@ -30,23 +29,8 @@ class LeetCode1786Test {
     @CsvFileSource(resources = "/LeetCode1786Test.argumentsForTestCountRestrictedPaths.csv", delimiterString = ";", maxCharsPerColumn = 1_000_000)
     @ParameterizedTest(name = "{index} => expected:{0} - n:{1} - edges:{2}")
     void testCountRestrictedPaths(long expected, int n, @ConvertWith(CommaDelimitedStringToIntArrayConverter.class) int[][] edges) {
-//        if (expected != 3) {
-//            return;
-//        }
-//        if (expected != 1) {
-//            return;
-//        }
-        if (expected != 988094463) {
-            return;
-        }
-//        if (expected > 10) {
-//            return;
-//        }
-        int count;
-        for (int i = 0; i < 2000; i++) {
-            count = new LeetCode1786().countRestrictedPaths(n, edges);
-            assertThat(count).isEqualTo(expected);
-        }
+        var count = new LeetCode1786().countRestrictedPaths(n, edges);
+        assertThat(count).isEqualTo(expected);
     }
 
     static class CommaDelimitedStringToIntArrayConverter implements ArgumentConverter {
