@@ -3,9 +3,9 @@ package org.playground.leetcode;
 import java.util.Arrays;
 
 /**
- * @see <a href="https://leetcode.com/problems/sort-vowels-in-a-string/submissions/1097561380/">Submission</a>
- * Runtime: 14 ms, Beats 98.68% of users with Java
- * Memory: 44.66 MB, Beats 87.14% of users with Java
+ * @see <a href="https://leetcode.com/problems/sort-vowels-in-a-string/submissions/1097571332/">Submission</a>
+ * Runtime: 11 ms, Beats 99.28% of users with Java
+ * Memory: 44.92 MB, Beats 76.32% of users with Java
  * <p>
  * Constraints:
  * 1 <= s.length <= 10^5 (100_000)
@@ -13,17 +13,22 @@ import java.util.Arrays;
  * <p>
  * This one is WAY easier than all others I've done so far, and the optimal solution is immediately obvious.
  * Initially, I've used ArrayList to store vowels, but sorting ArrayList takes like 50 time longer than char[].
- * The end solution is very fast and uses very little memory.
+ * After checking other solutions, and trying it out, it seems obvious that doing second run over the string is not great.
+ * Recording vowel positions and slotting vowels back from them is much faster than another iteration over the whole string.
+ * The end solution is very fast, but relatively not memory efficient, since arrays are pre-allocated greedily.
  */
 public class LeetCode2785 {
 
     public String sortVowels(String str) {
         char[] chars = str.toCharArray();
         char[] vowels = new char[chars.length];
+        int[] positions = new int[chars.length];
         int vl = 0;
-        for (var c : chars) {
+        for (int i = 0; i < chars.length; i++) {
+            var c = chars[i];
             if (isAsciiVowel(c)) {
                 vowels[vl] = c;
+                positions[vl] = i;
                 vl++;
             }
         }
@@ -31,13 +36,10 @@ public class LeetCode2785 {
             return str;
         }
         vowels = Arrays.copyOf(vowels, vl);
+        positions = Arrays.copyOf(positions, vl);
         Arrays.sort(vowels);
-        int vi = 0;
-        for (int i = 0; i < chars.length; i++) {
-            if (isAsciiVowel(chars[i])) {
-                chars[i] = vowels[vi];
-                vi++;
-            }
+        for (int i = 0; i < vl; i++) {
+            chars[positions[i]] = vowels[i];
         }
         return String.valueOf(chars);
     }
