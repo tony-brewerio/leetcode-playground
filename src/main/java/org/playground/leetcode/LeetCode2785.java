@@ -3,9 +3,9 @@ package org.playground.leetcode;
 import java.util.Arrays;
 
 /**
- * @see <a href="https://leetcode.com/problems/sort-vowels-in-a-string/submissions/1097571332/">Submission</a>
+ * @see <a href="https://leetcode.com/problems/sort-vowels-in-a-string/submissions/1097578500/">Submission</a>
  * Runtime: 11 ms, Beats 99.28% of users with Java
- * Memory: 44.92 MB, Beats 76.32% of users with Java
+ * Memory: 45.41 MB, Beats 63.70% of users with Java
  * <p>
  * Constraints:
  * 1 <= s.length <= 10^5 (100_000)
@@ -46,16 +46,16 @@ public class LeetCode2785 {
 
     private static boolean isAsciiVowel(char c) {
         // The vowels are 'a', 'e', 'i', 'o', and 'u', and they can appear in lowercase or uppercase.
-        return c == 65 // A
-                || c == 69 // E
-                || c == 73 // I
-                || c == 79 // O
-                || c == 85 // U
-                || c == 97 // a
-                || c == 101 // e
-                || c == 105 // i
-                || c == 111 // o
-                || c == 117; // u
+        return c == 'A'
+                || c == 'E'
+                || c == 'I'
+                || c == 'O'
+                || c == 'U'
+                || c == 'a'
+                || c == 'e'
+                || c == 'i'
+                || c == 'o'
+                || c == 'u';
     }
 
 }
