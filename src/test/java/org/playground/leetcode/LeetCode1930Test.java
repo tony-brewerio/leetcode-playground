@@ -24,6 +24,13 @@ class LeetCode1930Test {
         assertThat(result).isEqualTo(n);
     }
 
+    @MethodSource("argumentsForTestCountPalindromicSubsequence")
+    @ParameterizedTest
+    void testCountPalindromicSubsequenceV2(int n, String s) throws InterruptedException {
+        var result = new LeetCode1930V2().countPalindromicSubsequence(s);
+        assertThat(result).isEqualTo(n);
+    }
+
     private static Stream<Arguments> argumentsForTestCountPalindromicSubsequence() throws IOException {
         var arguments = new ArrayList<Arguments>();
         arguments.add(Arguments.of(3, "aabca"));
