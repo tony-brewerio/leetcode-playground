@@ -17,21 +17,21 @@ class LeetCode2931Test {
     private static final Logger log = LoggerFactory.getLogger(LeetCode2931Test.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    @MethodSource("argumentsForTestMinPairSum")
+    @MethodSource("argumentsForTestGarbageCollection")
     @ParameterizedTest
-    void testMinPairSum(int expected, String[] garbage, int[] travel) {
+    void testGarbageCollection(int expected, String[] garbage, int[] travel) {
         var result = new LeetCode2931().garbageCollection(garbage, travel);
         assertThat(result).isEqualTo(expected);
     }
 
-    @MethodSource("argumentsForTestMinPairSum")
+    @MethodSource("argumentsForTestGarbageCollection")
     @ParameterizedTest
-    void testMinPairSumV2(int expected, String[] garbage, int[] travel) {
+    void testGarbageCollectionV2(int expected, String[] garbage, int[] travel) {
         var result = new LeetCode2931V2().garbageCollection(garbage, travel);
         assertThat(result).isEqualTo(expected);
     }
 
-    private static Stream<Arguments> argumentsForTestMinPairSum() throws IOException {
+    private static Stream<Arguments> argumentsForTestGarbageCollection() throws IOException {
         var arguments = new ArrayList<Arguments>();
         arguments.add(Arguments.of(21, new String[]{"G", "P", "GP", "GG"}, new int[]{2, 4, 3}));
         arguments.add(Arguments.of(37, new String[]{"MMM", "PGM", "GP"}, new int[]{3, 10}));
