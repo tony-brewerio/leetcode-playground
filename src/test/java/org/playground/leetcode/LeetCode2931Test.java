@@ -24,6 +24,13 @@ class LeetCode2931Test {
         assertThat(result).isEqualTo(expected);
     }
 
+    @MethodSource("argumentsForTestMinPairSum")
+    @ParameterizedTest
+    void testMinPairSumV2(int expected, String[] garbage, int[] travel) {
+        var result = new LeetCode2931V2().garbageCollection(garbage, travel);
+        assertThat(result).isEqualTo(expected);
+    }
+
     private static Stream<Arguments> argumentsForTestMinPairSum() throws IOException {
         var arguments = new ArrayList<Arguments>();
         arguments.add(Arguments.of(21, new String[]{"G", "P", "GP", "GG"}, new int[]{2, 4, 3}));
