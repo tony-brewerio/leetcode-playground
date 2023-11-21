@@ -3,9 +3,9 @@ package org.playground.leetcode;
 import java.util.Arrays;
 
 /**
- * @see <a href="https://leetcode.com/problems/count-nice-pairs-in-an-array/submissions/1103746838/">Submission</a>
- * Runtime: 17 ms, Beats 100.00% of users with Java
- * Memory: 54.58 MB, Beats 69.87% of users with Java
+ * @see <a href="https://leetcode.com/problems/count-nice-pairs-in-an-array/submissions/1103751142/">Submission</a>
+ * Runtime: 20 ms, Beats 100.00% of users with Java
+ * Memory: 54.99 MB, Beats 57.62% of users with Java
  * <p>
  * Got a working solution that timed out, then took one hint that made it all very obvious.
  * With the modified nice pair condition, it is clear that we need to calculate num - rev for the entire array.
@@ -15,6 +15,9 @@ import java.util.Arrays;
  * <p>
  * I have updated the solution to reuse incoming nums array in attempt to save some memory.
  * This is a bad coding practice in any normal environment.
+ * <p>
+ * Implemented a proper formula for combinations instead of dumb loop.
+ * Somehow, it runs slower now? Go figure.
  */
 public class LeetCode1814 {
     private static final long MODULO = (long) (Math.pow(10, 9) + 7);
@@ -35,21 +38,17 @@ public class LeetCode1814 {
         }
         Arrays.sort(nums);
         //
-        long total = 0;
         int curr = nums[0];
-        int count = 0;
+        long total = 0;
+        long count = 0;
         for (int i = 0; i < nums.length; i++) {
             var d = nums[i];
             if (curr == d) {
                 count++;
             }
             if (d != curr || i == (nums.length - 1)) {
-                long combinations = 0;
-                while (count >= 2) {
-                    combinations += count - 1;
-                    count--;
-                }
-                total += combinations;
+                total += count * (count - 1) / 2;
+                count = 1;
                 curr = d;
             }
         }
