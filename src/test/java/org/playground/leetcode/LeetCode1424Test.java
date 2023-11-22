@@ -2,22 +2,16 @@ package org.playground.leetcode;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.converter.ArgumentConversionException;
 import org.junit.jupiter.params.converter.ArgumentConverter;
 import org.junit.jupiter.params.converter.ConvertWith;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvFileSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,11 +26,15 @@ class LeetCode1424Test {
                                @ConvertWith(CSVListOfListsOfIntsConverter.class) List<List<Integer>> nums) {
         var result = new LeetCode1424().findDiagonalOrder(nums);
         assertThat(result).isEqualTo(expected);
-//        if (n == 3) {
-//                var result = new LeetCode1424().findDiagonalOrder(nums);
-//                assertThat(result).isEqualTo(expected);
-//            }
-//        }
+    }
+
+    @CsvFileSource(resources = "/LeetCode1424Test.argumentsForTestFindDiagonalOrder.csv", delimiterString = ";", maxCharsPerColumn = 1_000_000)
+    @ParameterizedTest(name = "case #{index}")
+    void testFindDiagonalOrderV2(int n,
+                                 @ConvertWith(CSVArrayOfIntsConverter.class) int[] expected,
+                                 @ConvertWith(CSVListOfListsOfIntsConverter.class) List<List<Integer>> nums) {
+        var result = new LeetCode1424V2().findDiagonalOrder(nums);
+        assertThat(result).isEqualTo(expected);
     }
 
     static class CSVArrayOfIntsConverter implements ArgumentConverter {
