@@ -25,7 +25,7 @@ class LeetCode1424Test {
     private static final Logger log = LoggerFactory.getLogger(LeetCode1424Test.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    @CsvFileSource(resources = "/LeetCode1877Test.argumentsForTestFindDiagonalOrder.csv", delimiterString = ";", maxCharsPerColumn = 1_000_000)
+    @CsvFileSource(resources = "/LeetCode1424Test.argumentsForTestFindDiagonalOrder.csv", delimiterString = ";", maxCharsPerColumn = 1_000_000)
     @ParameterizedTest(name = "case #{index}")
     void testFindDiagonalOrder(int n,
                                @ConvertWith(CSVArrayOfIntsConverter.class) int[] expected,
@@ -33,7 +33,6 @@ class LeetCode1424Test {
         var result = new LeetCode1424().findDiagonalOrder(nums);
         assertThat(result).isEqualTo(expected);
 //        if (n == 3) {
-//            for (int i = 0; i < 100; i++) {
 //                var result = new LeetCode1424().findDiagonalOrder(nums);
 //                assertThat(result).isEqualTo(expected);
 //            }

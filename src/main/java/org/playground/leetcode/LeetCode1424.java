@@ -1,29 +1,53 @@
 package org.playground.leetcode;
 
+import org.playground.leetcode.helpers.AveragingOperationTimer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
 /**
  * @see <a href="https://leetcode.com/problems/diagonal-traverse-ii/submissions/1104483391/">Submission</a>
- * Runtime: 45 ms, Beats 20.56% of users with Java
- * Memory: 68.63 MB, Beats 66.74% of users with Java
+ * not accepted
  * <p>
- * Used the hints, but not checked any other solutions for now.
- * Now its plenty fast, but still much slower than what other people have.
+ * Would be cute if worked, but alas.
+ * Leetcode apparently lied about the constraints.
+ * They say that `nums[i][j] <= 10^5`, but that's not actually true, and test case 53 contains much larger values.
  */
 public class LeetCode1424 {
 
     public int[] findDiagonalOrder(List<List<Integer>> nums) {
-        var tuples = new ArrayList<int[]>();
+        // max long is 9,223,372,036,854,775,807
+        //               200,000,100,000,100,000
+        // max item 100,000
+        // max rows 100,000
+        // max cols 100,000
+        // max sum  200,000
+        // six digits for sum, six digits for row, six digits for value
+        // 200,000,100,000,100,000
+        int total = 0;
+        for (int y = 0; y < nums.size(); y++) {
+            total += nums.get(y).size();
+        }
+        var longs = new long[total];
+        long maxval = 100_000;
+        long s_mult = 1_000_000_000_000L;
+        long y_mult = 1_000_000L;
+        int li = 0;
         for (int y = 0; y < nums.size(); y++) {
             var row = nums.get(y);
             for (int x = 0; x < row.size(); x++) {
-                tuples.add(new int[]{x + y, -y, row.get(x)});
+                longs[li++] = ((x + y) * s_mult) + ((maxval - y) * y_mult) + row.get(x);
             }
         }
-        tuples.sort(Comparator.comparingInt((int[] t) -> t[0]).thenComparingInt((int[] t) -> t[1]));
+        Arrays.sort(longs);
+        var ints = new int[longs.length];
+        for (int i = 0; i < longs.length; i++) {
+            ints[i] = (int) (longs[i] % y_mult);
         }
-        return tuples.stream().mapToInt(t -> t[2]).toArray();
+        return ints;
     }
 }
