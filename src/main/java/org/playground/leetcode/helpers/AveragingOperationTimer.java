@@ -1,6 +1,7 @@
 package org.playground.leetcode.helpers;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,13 +12,17 @@ import java.util.concurrent.TimeUnit;
 public class AveragingOperationTimer implements AutoCloseable {
     private static final Map<String, List<Long>> history = new HashMap<>();
 
-    private final long start = System.nanoTime();
     private final Logger logger;
-    private final String message;
+    private long start = 0;
+    private String message = null;
 
-    public AveragingOperationTimer(Logger logger, String message) {
-        this.logger = logger;
+    public AveragingOperationTimer(Class<?> cls) {
+        this.logger = LoggerFactory.getLogger(cls);
+    }
+
+    public void start(String message) {
         this.message = message;
+        this.start = System.nanoTime();
     }
 
     @Override
