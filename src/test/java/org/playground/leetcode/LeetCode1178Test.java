@@ -27,4 +27,16 @@ class LeetCode1178Test {
         assertThat(result).isEqualTo(expected);
     }
 
+    @CsvFileSource(resources = "/LeetCode1178Test.argumentsForTestFindNumOfValidWords.csv", delimiterString = ";", maxCharsPerColumn = 10_000_000)
+    @ParameterizedTest(name = "case #{index}")
+    void testFindNumOfValidWordsUsingTrie(int i,
+                                          @ConvertWith(CSVListOfIntegersConverter.class) List<Integer> expected,
+                                          @ConvertWith(CSVArrayOfStringsConverter.class) String[] words,
+                                          @ConvertWith(CSVArrayOfStringsConverter.class) String[] puzzles) {
+
+        var result = new LeetCode1178UsingTrie().findNumOfValidWords(words, puzzles);
+        assertThat(result).isEqualTo(expected);
+
+    }
+
 }
