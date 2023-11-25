@@ -8,8 +8,8 @@ import java.util.List;
 
 /**
  * @see <a href="https://leetcode.com/problems/number-of-valid-words-for-each-puzzle/submissions/1106341981/">Submission</a>
- * Runtime: 60 ms, Beats 38.46% of users with Java
- * Memory: 71.71 MB, Beats 15.38% of users with Java
+ * Runtime: 58 ms, Beats 56.41% of users with Java
+ * Memory: 71.75 MB, Beats 15.38% of users with Java
  * <p>
  * After googling around, I found how it iterate over bitsets.
  * This can replace & tests over each and every word with a simple hashmap lookup for each subset.
@@ -20,7 +20,7 @@ public class LeetCode1178 {
     private AveragingOperationTimer timer = new AveragingOperationTimer(LeetCode1178.class);
 
     public List<Integer> findNumOfValidWords(String[] words, String[] puzzles) {
-        var wmap = new HashMap<Integer, Integer>();
+        var wmap = new HashMap<Integer, Integer>(1 << 8);
         for (var word : words) {
             var wsetAndUniqCount = toIntBitsWithUniqCount(word);
             var wset = wsetAndUniqCount[0];
@@ -35,7 +35,7 @@ public class LeetCode1178 {
             int count = 0;
             var pset = toIntBits(puzzle);
             int submask = pset;
-            int first = submask & (1 << (puzzle.charAt(0) - 'a'));
+            int first = 1 << (puzzle.charAt(0) - 'a');
             while (submask > 0) {
                 if ((submask & first) != 0) {
                     count += wmap.getOrDefault(submask, 0);
