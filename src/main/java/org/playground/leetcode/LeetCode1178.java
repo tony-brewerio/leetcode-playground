@@ -5,26 +5,22 @@ import org.playground.leetcode.helpers.AveragingOperationTimer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
- * @see <a href="https://leetcode.com/problems/number-of-valid-words-for-each-puzzle/submissions/1106317553/">Submission</a>
- * Runtime: 371 ms, Beats 5.13% of users with Java
- * Memory: 71.91 MB, Beats 7.69% of users with Java
+ * @see <a href="https://leetcode.com/problems/number-of-valid-words-for-each-puzzle/submissions/1106341981/">Submission</a>
+ * Runtime: 60 ms, Beats 38.46% of users with Java
+ * Memory: 71.71 MB, Beats 15.38% of users with Java
  * <p>
- * Accepted, but slow.
- * Optimized it as much as I could, really, but no help.
- * I have to rething the approach.
- * If anything, perhaps going the other way around would be better, i.e. compiling puzzles and iterating over words.
+ * After googling around, I found how it iterate over bitsets.
+ * This can replace & tests over each and every word with a simple hashmap lookup for each subset.
+ * Since puzzles are small, they will have very limited amount of subsets, so it is a lot less operations overall.
+ * The thing is still slow somehow, what else to do?
  */
 public class LeetCode1178 {
     private AveragingOperationTimer timer = new AveragingOperationTimer(LeetCode1178.class);
 
     public List<Integer> findNumOfValidWords(String[] words, String[] puzzles) {
-        var wmap = new ArrayList<Map<Integer, Integer>>(26);
-        for (int i = 0; i < 26; i++) {
-            wmap.add(new HashMap<>());
-        }
+        var wmap = new HashMap<Integer, Integer>();
         for (var word : words) {
             var wsetAndUniqCount = toIntBitsWithUniqCount(word);
             var wset = wsetAndUniqCount[0];
@@ -32,24 +28,19 @@ public class LeetCode1178 {
             if (uniq > 7) {
                 continue;
             }
-            for (int b = 0; b < 26; b++) {
-                if ((wset & (1 << b)) != 0) {
-                    var curr = wmap.get(b).get(wset);
-                    wmap.get(b).put(wset, curr != null ? curr + 1 : 1);
-                }
-            }
+            wmap.put(wset, wmap.getOrDefault(wset, 0) + 1);
         }
         var result = new ArrayList<Integer>(words.length);
         for (var puzzle : puzzles) {
             int count = 0;
             var pset = toIntBits(puzzle);
-            var wlist = wmap.get((char) (puzzle.charAt(0) - 'a'));
-            if (wlist != null) {
-                for (var e : wlist.entrySet()) {
-                    if ((pset & e.getKey()) == e.getKey()) {
-                        count += e.getValue();
-                    }
+            int submask = pset;
+            int first = submask & (1 << (puzzle.charAt(0) - 'a'));
+            while (submask > 0) {
+                if ((submask & first) != 0) {
+                    count += wmap.getOrDefault(submask, 0);
                 }
+                submask = (submask - 1) & pset;
             }
             result.add(count);
         }
