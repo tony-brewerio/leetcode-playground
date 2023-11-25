@@ -17,6 +17,8 @@ package org.playground.leetcode;
  * <p>
  * This is the cursed version, modifying the input array.
  * At 4 ms it is probably withing a margin of error from 3 ms which seems to be the best you can get.
+ * <p>
+ * Added a JMH bench to prove that reusing input array is faster, and it it.
  */
 public class LeetCode1685 {
 
