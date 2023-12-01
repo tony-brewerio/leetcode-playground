@@ -1,33 +1,45 @@
 package org.playground.leetcode;
 
-import java.util.Arrays;
-
 /**
- * @see <a href="https://leetcode.com/problems/check-if-two-string-arrays-are-equivalent/submissions/1110443984/">Submission</a>
- * Runtime: 10 ms, Beats 7.84% of users with Java
- * Memory: 41.56 MB, Beats 5.03% of users with Java
+ * @see <a href="https://leetcode.com/problems/check-if-two-string-arrays-are-equivalent/submissions/1110447313/">Submission</a>
+ * Runtime: 2 ms, Beats 12.10% of users with Java
+ * Memory: 40.69 MB, Beats 29.21% of users with Java
  * <p>
- * Pretty nice solution with zipped streams, but is slow-ish.
+ * Not as pretty as the stream solution, but works much faster and consumes less memory.
+ * Supposedly, concatenation + comparison solution is even faster, but it sounds boring.
  */
 public class LeetCode1662 {
 
     public boolean arrayStringsAreEqual(String[] word1, String[] word2) {
-        var w1 = Arrays.stream(word1).flatMapToInt(String::chars).iterator();
-        var w2 = Arrays.stream(word2).flatMapToInt(String::chars).iterator();
-        while (true) {
-            var w1n = w1.hasNext();
-            var w2n = w2.hasNext();
-            if (w1n != w2n) {
+        int w1tl = 0;
+        for (String s : word1) {
+            w1tl += s.length();
+        }
+        int w2tl = 0;
+        for (String s : word2) {
+            w2tl += s.length();
+        }
+        if (w1tl != w2tl) {
+            return false;
+        }
+        int w1wi = 0, w1ci = 0;
+        int w2wi = 0, w2ci = 0;
+        for (int i = 0; i < w1tl; i++) {
+            var w1 = word1[w1wi];
+            var w2 = word2[w2wi];
+            if (w1.charAt(w1ci++) != w2.charAt(w2ci++)) {
                 return false;
             }
-            if (w1n) {
-                if (w1.nextInt() != w2.nextInt()) {
-                    return false;
-                }
-            } else {
-                return true;
+            if (w1ci >= w1.length()) {
+                w1wi++;
+                w1ci = 0;
+            }
+            if (w2ci >= w2.length()) {
+                w2wi++;
+                w2ci = 0;
             }
         }
+        return true;
     }
 
 }
