@@ -3,17 +3,14 @@ package org.playground.leetcode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
- * @see <a href="https://leetcode.com/problems/design-a-food-rating-system/submissions/1121916196/">Submission</a>
- * Runtime: 211 ms, Beats 69.49% of users with Java
- * Memory: 74.90 MB, Beats 23.73% of users with Java ( varies greatly between runs )
+ * @see <a href="https://leetcode.com/problems/design-a-food-rating-system/submissions/1121938916/">Submission</a>
+ * Runtime: 193 ms, Beats 79.10% of users with Java
+ * Memory: 74.4 MB, Beats 29.38% of users with Java ( varies greatly between runs )
  * <p>
- * This one was a little bit more complicated than easy ones before.
+ * Optimized a bit using compute method to avoid extra tree traversals.
  */
 public class LeetCode2353 {
     private final Logger log = LoggerFactory.getLogger(LeetCode2353.class);
@@ -59,12 +56,14 @@ public class LeetCode2353 {
             }
 
             public void change(String food, int rating) {
-                var prevRating = ratingByFood.put(food, rating);
-                var prevSet = foodsByRating.get(prevRating);
-                prevSet.remove(food);
-                if (prevSet.isEmpty()) {
-                    foodsByRating.remove(prevRating);
-                }
+                foodsByRating.compute(ratingByFood.put(food, rating), (k, v) -> {
+                    if (v.size() == 1) {
+                        return null;
+                    } else {
+                        v.remove(food);
+                        return v;
+                    }
+                });
                 var map = foodsByRating.computeIfAbsent(rating, r -> new TreeSet<>());
                 map.add(food);
             }
