@@ -6,11 +6,15 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * @see <a href="https://leetcode.com/problems/design-a-food-rating-system/submissions/1121938916/">Submission</a>
- * Runtime: 193 ms, Beats 79.10% of users with Java
- * Memory: 74.4 MB, Beats 29.38% of users with Java ( varies greatly between runs )
+ * @see <a href="https://leetcode.com/problems/design-a-food-rating-system/submissions/1121966898/">Submission</a>
+ * Runtime: 185 ms, Beats 85.31% of users with Java
+ * Memory: 72.54 MB, Beats 54.80% of users with Java ( varies greatly between runs )
  * <p>
- * Optimized a bit using compute method to avoid extra tree traversals.
+ * The final variant uses TreeSet and custom comparable record wrapper over food + rating.
+ * <p>
+ * From what I've seen of other solutions, they usually gain a bit of speed by not removing old TreeSet items.
+ * Instead, they update items to mark them as tombstones, and ignore those when iterating over the set from the start.
+ * It can work perhaps, but feels off to me, and the current solution is more than good enough anyway.
  */
 public class LeetCode2353 {
     private final Logger log = LoggerFactory.getLogger(LeetCode2353.class);
@@ -46,30 +50,31 @@ public class LeetCode2353 {
         }
 
         public static class FoodRatingMap {
-            private TreeMap<Integer, TreeSet<String>> foodsByRating = new TreeMap<>();
-            private Map<String, Integer> ratingByFood = new HashMap<>();
+            private TreeSet<FoodWithRating> set = new TreeSet<>();
+            private Map<String, FoodWithRating> foodWithRatingByFood = new HashMap<>();
 
             public void add(String food, int rating) {
-                var map = foodsByRating.computeIfAbsent(rating, r -> new TreeSet<>());
-                map.add(food);
-                ratingByFood.put(food, rating);
+                var fwr = new FoodWithRating(food, rating);
+                set.add(fwr);
+                foodWithRatingByFood.put(food, fwr);
             }
 
             public void change(String food, int rating) {
-                foodsByRating.compute(ratingByFood.put(food, rating), (k, v) -> {
-                    if (v.size() == 1) {
-                        return null;
-                    } else {
-                        v.remove(food);
-                        return v;
-                    }
-                });
-                var map = foodsByRating.computeIfAbsent(rating, r -> new TreeSet<>());
-                map.add(food);
+                var fwr = new FoodWithRating(food, rating);
+                set.remove(foodWithRatingByFood.put(food, fwr));
+                set.add(fwr);
             }
 
             public String highest() {
-                return foodsByRating.lastEntry().getValue().first();
+                return set.first().food;
+            }
+        }
+
+        public record FoodWithRating(String food, int rating) implements Comparable<FoodWithRating> {
+            @Override
+            public int compareTo(FoodWithRating o) {
+                var rc = Integer.compare(o.rating, rating);
+                return rc != 0 ? rc : food.compareTo(o.food);
             }
         }
     }
