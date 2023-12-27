@@ -24,6 +24,7 @@ class LeetCode1578Test {
         arguments.add(Arguments.of(3, "abaac", new int[]{1, 2, 3, 4, 5}));
         arguments.add(Arguments.of(0, "abc", new int[]{1, 2, 3}));
         arguments.add(Arguments.of(2, "aabaa", new int[]{1, 2, 3, 4, 1}));
+        arguments.add(Arguments.of(26, "aaabbbabbbb", new int[]{3, 5, 10, 7, 5, 3, 5, 5, 4, 8, 1}));
         return arguments.stream();
     }
 
