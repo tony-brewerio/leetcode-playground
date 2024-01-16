@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.converter.ConvertWith;
 import org.junit.jupiter.params.provider.CsvFileSource;
-import org.playground.leetcode.converters.CSVArrayOfStringsConverter;
+import org.playground.leetcode.converters.CSVArrayOfStringConverter;
 import org.playground.leetcode.converters.CSVListOfIntegersConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,8 +21,8 @@ class LeetCode1178Test {
     @ParameterizedTest(name = "case #{index}")
     void testFindNumOfValidWords(int i,
                                  @ConvertWith(CSVListOfIntegersConverter.class) List<Integer> expected,
-                                 @ConvertWith(CSVArrayOfStringsConverter.class) String[] words,
-                                 @ConvertWith(CSVArrayOfStringsConverter.class) String[] puzzles) {
+                                 @ConvertWith(CSVArrayOfStringConverter.class) String[] words,
+                                 @ConvertWith(CSVArrayOfStringConverter.class) String[] puzzles) {
         var result = new LeetCode1178().findNumOfValidWords(words, puzzles);
         assertThat(result).isEqualTo(expected);
     }
@@ -31,8 +31,8 @@ class LeetCode1178Test {
     @ParameterizedTest(name = "case #{index}")
     void testFindNumOfValidWordsUsingTrie(int i,
                                           @ConvertWith(CSVListOfIntegersConverter.class) List<Integer> expected,
-                                          @ConvertWith(CSVArrayOfStringsConverter.class) String[] words,
-                                          @ConvertWith(CSVArrayOfStringsConverter.class) String[] puzzles) {
+                                          @ConvertWith(CSVArrayOfStringConverter.class) String[] words,
+                                          @ConvertWith(CSVArrayOfStringConverter.class) String[] puzzles) {
 
         var result = new LeetCode1178UsingTrie().findNumOfValidWords(words, puzzles);
         assertThat(result).isEqualTo(expected);
