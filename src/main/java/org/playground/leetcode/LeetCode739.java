@@ -6,58 +6,49 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * @see <a href="https://leetcode.com/problems/daily-temperatures/submissions/1162305758/">Submission</a>
- * Runtime: 212 ms, Beats 5.10% of users with Java
- * Memory: 60.80 MB, Beats 36.14% of users with Java ( varies greatly between runs )
+ * @see <a href="https://leetcode.com/problems/daily-temperatures/submissions/1162325782/">Submission</a>
+ * Runtime: 38 ms, Beats 80.41% of users with Java
+ * Memory: 59.82 MB, Beats 58.61% of users with Java ( varies greatly between runs )
  * <p>
  * Works, but is very slow due to TreeSet.
+ * <p>
+ * As usual, using raw arrays is the way to go for speed.
+ * Though, there are much faster solution, meaning that this one is very suboptimal.
+ * Works well enough though.
  */
 public class LeetCode739 {
     private final Logger log = LoggerFactory.getLogger(LeetCode739.class);
 
     public int[] dailyTemperatures(int[] temperatures) {
         int[] result = new int[temperatures.length];
-        TreeSet<TempWithIndex> prevSeenTemps = new TreeSet<>();
+        //
+        boolean[] prevSeenTemps = new boolean[101];
+        int[][] prevSeenTempsIndexes = new int[101][16 + 1];
+        //
         for (int i = 0; i < temperatures.length; i++) {
             int temp = temperatures[i];
-            var ti = new TempWithIndex(temp, i);
-            var iter = prevSeenTemps.headSet(new TempWithIndex(temp, -1)).iterator();
-            while (iter.hasNext()) {
-                var remove = iter.next();
-                result[remove.index] = ti.index - remove.index;
-                iter.remove();
+            //
+            int[] tempIndexes = prevSeenTempsIndexes[temp];
+            int tempIndexesNextSize = ++tempIndexes[0];
+            tempIndexes[tempIndexesNextSize] = i;
+            if (tempIndexesNextSize == (tempIndexes.length - 1)) {
+                tempIndexes = Arrays.copyOf(tempIndexes, (int) ((tempIndexes.length + 16) * 1.4));
+                prevSeenTempsIndexes[temp] = tempIndexes;
             }
-            prevSeenTemps.add(ti);
+            //
+            for (int j = 30; j < temp; j++) {
+                if (prevSeenTemps[j]) {
+                    int[] prevTempIndexes = prevSeenTempsIndexes[j];
+                    for (int k = 1; k <= prevTempIndexes[0]; k++) {
+                        int prevTempIndex = prevTempIndexes[k];
+                        result[prevTempIndex] = i - prevTempIndex;
+                    }
+                    prevTempIndexes[0] = 0;
+                    prevSeenTemps[j] = false;
+                }
+            }
+            prevSeenTemps[temp] = true;
         }
         return result;
-    }
-
-    public class TempWithIndex implements Comparable<TempWithIndex> {
-        private final int temp;
-        private final int index;
-
-        public TempWithIndex(int temp, int index) {
-            this.temp = temp;
-            this.index = index;
-        }
-
-        @Override
-        public int compareTo(TempWithIndex o) {
-            int comp = Integer.compare(temp, o.temp);
-            return comp != 0 ? comp : Integer.compare(index, o.index);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof TempWithIndex o) {
-                return temp == o.temp && index == o.index;
-            }
-            return false;
-        }
-
-        @Override
-        public int hashCode() {
-            return Integer.hashCode(temp + index);
-        }
     }
 }
