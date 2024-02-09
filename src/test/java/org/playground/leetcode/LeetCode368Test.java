@@ -25,10 +25,17 @@ class LeetCode368Test {
     @CsvFileSource(resources = "/LeetCode368Test.argumentsForTestLargestDivisibleSubset.csv", delimiterString = ";", maxCharsPerColumn = 1_000_000)
     @ParameterizedTest(name = "{index}")
     void testLargestDivisibleSubset(int i, @ConvertWith(CSVListOfIntegersConverter.class) List<Integer> expected, @ConvertWith(CSVArrayOfIntConverter.class) int[] nums) {
-        if (i != 3) {
-            return;
-        }
         var result = new LeetCode368().largestDivisibleSubset(nums);
-        assertThat(result).isEqualTo(expected);
+        // since results should be accepted in any order, the most important thing is length
+        assertThat(result).hasSameSizeAs(expected);
+        // otherwise, just verify the condition
+        for (int j = 0; j < result.size() - 1; j++) {
+            final int jj = j;
+            assertThat(result.get(j + 1) % result.get(j))
+                    .withFailMessage(() -> "result - idx: %s / %s - val %s / %s - mod != 0".formatted(
+                            jj + 1, jj, result.get(jj + 1), result.get(jj)
+                    ))
+                    .isZero();
+        }
     }
 }
